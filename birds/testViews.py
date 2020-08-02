@@ -197,7 +197,149 @@ class BirdsViewTestCase(TestCase):
     # BirdsView
     # POST /birds
     def test_BirdsView_post(self):
-        data = {"species": "sparrow", "name": "test1", "color": "black & white", "body_length": 14, "wingspan": 23}
+        data = {"species": "sparrow", "name": "test", "color": "black & white", "body_length": 14, "wingspan": 23}
+        count_before = Birds.objects.count()
         response = self.client.post('/birds', data, format='json')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Birds.objects.count(), count_before+1)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, "Bird 'test' created successfully")
 
+    def test_BirdsView_post_duplicate_name(self):
+        Birds.objects.create(species="sparrow", name="test", color="black & white", body_length=14, wingspan=23)
+        data = {"species": "sparrow", "name": "test", "color": "black & white", "body_length": 14, "wingspan": 23}
+        count_before = Birds.objects.count()
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(Birds.objects.count(), count_before)
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'name': [ErrorDetail(string='birds with this name already exists.', code='unique')]}")
+
+    def test_BirdsView_post_duplicate_name_with_different_case(self):
+        Birds.objects.create(species="sparrow", name="test", color="black & white", body_length=14, wingspan=23)
+        data = {"species": "sparrow", "name": "tEsT", "color": "black & white", "body_length": 14, "wingspan": 23}
+        count_before = Birds.objects.count()
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(Birds.objects.count(), count_before+1)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, "Bird 'tEsT' created successfully")
+
+    def test_BirdsView_post_without_name(self):
+        data = {"species": "sparrow", "color": "black & white", "body_length": 14, "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'name': [ErrorDetail(string='This field is required.', code='required')]}")
+
+    def test_BirdsView_post_without_species(self):
+        data = {"name": "test", "color": "black & white", "body_length": 14, "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'species': [ErrorDetail(string='This field is required.', code='required')]}")
+
+    def test_BirdsView_post_without_color(self):
+        data = {"species": "sparrow", "name": "test", "body_length": 14, "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'color': [ErrorDetail(string='This field is required.', code='required')]}")
+
+    def test_BirdsView_post_without_body_length(self):
+        data = {"species": "sparrow", "name": "test", "color": "black & white", "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'body_length': [ErrorDetail(string='This field is required.', code='required')]}")
+
+    def test_BirdsView_post_without_wingspan(self):
+        data = {"species": "sparrow", "name": "test", "color": "black & white", "body_length": 14}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'wingspan': [ErrorDetail(string='This field is required.', code='required')]}")
+
+    def test_BirdsView_post_extra_params(self):
+        data = {"species": "sparrow", "name": "test", "color": "black & white", "body_length": 14, "wingspan": 23, "test": "str"}
+        count_before = Birds.objects.count()
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(Birds.objects.count(), count_before+1)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, "Bird 'test' created successfully")
+
+    def test_BirdsView_post_empty_name(self):
+        data = {"species": "sparrow", "name": "", "color": "black & white", "body_length": 14, "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'name': [ErrorDetail(string='This field may not be blank.', code='blank')]}")
+
+    def test_BirdsView_post_integer_name(self):
+        data = {"species": "sparrow", "name": 123, "color": "black & white", "body_length": 14, "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, "Bird '123' created successfully")
+
+    def test_BirdsView_post_empty_species(self):
+        data = {"species": "", "name": "test", "color": "black & white", "body_length": 14, "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'species': [ErrorDetail(string='\"\" is not a valid choice.', code='invalid_choice')]}")
+
+    def test_BirdsView_post_integer_species(self):
+        data = {"species": 123, "name": "test", "color": "black & white", "body_length": 14, "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'species': [ErrorDetail(string='\"123\" is not a valid choice.', code='invalid_choice')]}")
+
+    def test_BirdsView_post_empty_color(self):
+        data = {"species": "sparrow", "name": "test", "color": "", "body_length": 14, "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'color': [ErrorDetail(string='\"\" is not a valid choice.', code='invalid_choice')]}")
+
+    def test_BirdsView_post_integer_color(self):
+        data = {"species": "sparrow", "name": 123, "color": 123, "body_length": 14, "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'color': [ErrorDetail(string='\"123\" is not a valid choice.', code='invalid_choice')]}")
+
+    def test_BirdsView_post_zero_body_length(self):
+        data = {"species": "sparrow", "name": 123, "color": "black & white", "body_length": 0, "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'body_length': [ErrorDetail(string='Ensure this value is greater than or equal to 1.', code='min_value')]}")
+
+    def test_BirdsView_post_negative_body_length(self):
+        data = {"species": "sparrow", "name": 123, "color": "black & white", "body_length": -10, "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'body_length': [ErrorDetail(string='Ensure this value is greater than or equal to 1.', code='min_value')]}")
+
+    def test_BirdsView_post_empty_body_length(self):
+        data = {"species": "sparrow", "name": 123, "color": "black & white", "body_length": "", "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'body_length': [ErrorDetail(string='A valid integer is required.', code='invalid')]}")
+
+    def test_BirdsView_post_string_body_length(self):
+        data = {"species": "sparrow", "name": 123, "color": "black & white", "body_length": "abc", "wingspan": 23}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'body_length': [ErrorDetail(string='A valid integer is required.', code='invalid')]}")
+
+    def test_BirdsView_post_zero_wingspan(self):
+        data = {"species": "sparrow", "name": 123, "color": "black & white", "body_length": 14, "wingspan": 0}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'wingspan': [ErrorDetail(string='Ensure this value is greater than or equal to 1.', code='min_value')]}")
+
+    def test_BirdsView_post_negative_wingspan(self):
+        data = {"species": "sparrow", "name": 123, "color": "black & white", "body_length": 14, "wingspan": -10}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'wingspan': [ErrorDetail(string='Ensure this value is greater than or equal to 1.', code='min_value')]}")
+
+    def test_BirdsView_post_empty_wingspan(self):
+        data = {"species": "sparrow", "name": 123, "color": "black & white", "body_length": 14, "wingspan": ""}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'wingspan': [ErrorDetail(string='A valid integer is required.', code='invalid')]}")
+
+    def test_BirdsView_post_string_wingspan(self):
+        data = {"species": "sparrow", "name": 123, "color": "black & white", "body_length": 14, "wingspan": "abc"}
+        response = self.client.post('/birds', data, format='json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, "Data is not valid: {'wingspan': [ErrorDetail(string='A valid integer is required.', code='invalid')]}")

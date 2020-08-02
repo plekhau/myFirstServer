@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
@@ -29,8 +30,12 @@ class Birds(models.Model):
         choices=Color.choices,
         max_length=255
     )
-    body_length = models.PositiveIntegerField()
-    wingspan = models.PositiveIntegerField()
+    body_length = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)]
+    )
+    wingspan = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)]
+    )
 
     class Meta:
         managed = False

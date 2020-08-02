@@ -57,12 +57,20 @@ class BirdsView(APIView):
 
     def post(self, request):
         try:
-            bird = request.data
+            try:
+                bird = request.data
+            except Exception as e:
+                return Response("Bad request. JSON is not valid: {}".format(e), status=400)
 
             serializer = BirdsSerializer(data=bird)
-            if serializer.is_valid(raise_exception=True):
-                bird_saved = serializer.save()
-            return Response({"success": "Bird '{}' created successfully".format(bird_saved.name)})
+
+            try:
+                if serializer.is_valid(raise_exception=True):
+                    bird_saved = serializer.save()
+            except  Exception as e:
+                return Response("Data is not valid: {}".format(e), status=422)
+
+            return Response("Bird '{}' created successfully".format(bird_saved.name), status=204)
 
         except Exception as e:
             return Response("Something goes wrong: {}".format(e), status=500)
