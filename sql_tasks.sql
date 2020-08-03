@@ -1,19 +1,21 @@
 -- Task #1
+-- 1)
 DELETE FROM bird_colors_info;
 INSERT INTO bird_colors_info (color, count) SELECT color, COUNT(*) FROM birds GROUP BY color;
 
-/*
-SELECT c.color AS color, COUNT(*) FROM (
-	SELECT 'blank' AS color UNION ALL
-	SELECT 'white' :: bird_color UNION ALL
-	SELECT 'black & white' :: bird_color UNION ALL
-	SELECT 'grey' :: bird_color UNION ALL
-	SELECT 'red' :: bird_color UNION ALL
-	SELECT 'red & white' :: bird_color) c LEFT JOIN
+-- 2)
+DELETE FROM bird_colors_info;
+INSERT INTO bird_colors_info (color, count)
+SELECT c.color AS color, COUNT(name) FROM (
+	SELECT 'black'::bird_color AS color UNION ALL
+	SELECT 'white' UNION ALL
+	SELECT 'black & white' UNION ALL
+	SELECT 'grey' UNION ALL
+	SELECT 'red' UNION ALL
+	SELECT 'red & white') c LEFT JOIN
 birds b 
 USING(color)
-GROUP BY b.color;
-*/
+GROUP BY color;
 
 
 -- Task #2
