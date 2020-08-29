@@ -41,6 +41,13 @@ SELECT
 ```
 
 ## Task #3
+### UPD (29.08.2020): Start using docker
+Run commands from project root folder:
+```bash
+docker-compose build
+docker-compose up
+```
+
 ### Start
 1. Start ostadnick/birds-db docker container from task
 2. Start \venv\Scripts\activate.bat to activate venv or start PyCharm

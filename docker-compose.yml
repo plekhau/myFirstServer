@@ -1,0 +1,15 @@
+version: '3.1'
+
+services:
+
+  db:
+    image: ostadnick/birds-db
+    restart: always
+    ports:
+      - 5432:5432
+
+  my_first_server:
+    build: .
+    restart: always
+    ports:
+      - 8080:8080
